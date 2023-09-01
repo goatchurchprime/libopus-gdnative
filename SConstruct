@@ -1,48 +1,10 @@
-#!python
-import os, subprocess
+#!/usr/bin/env python
+import os
+import sys
 
-opts = Variables([], ARGUMENTS)
+env = SConscript("godot-cpp/SConstruct")
 
-# Gets the standard flags CC, CCX, etc.
-env = DefaultEnvironment()
-
-# Define our options
-opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
-opts.Add(EnumVariable('t', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
-opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx']))
-opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
-opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
-opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'bin/'))
-opts.Add(PathVariable('target_name', 'The library name.', 'libgodotopus', PathVariable.PathAccept))
-
-# Local dependency paths, adapt them to your setup
-godot_headers_path = "godot-cpp/godot_headers/"
-cpp_bindings_path = "godot-cpp/"
-cpp_library = "libgodot-cpp"
-opus_headers = "opus/"
-
-# only support 64 at this time..
-bits = 64
-
-# Updates the environment with the option variables.
-opts.Update(env)
-
-# Process some arguments
-if env['use_llvm']:
-    env['CC'] = 'clang'
-    env['CXX'] = 'clang++'
-
-if env['p'] != '':
-    env['platform'] = env['p']
-
-if env['t'] != '':
-    env['target'] = env['t']
-
-if env['platform'] == '':
-    print("No valid target platform selected.")
-    quit();
-
-# For the reference:
+# For reference:
 # - CCFLAGS are compilation flags shared between C and C++
 # - CFLAGS are for C-specific compilation flags
 # - CXXFLAGS are for C++-specific compilation flags
@@ -50,76 +12,31 @@ if env['platform'] == '':
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
 
-# Check our platform specifics
-if env['platform'] == "osx":
-    env['target_path'] += 'osx/'
-    cpp_library += '.osx'
-    env.Append(LIBPATH=['./libs/osx/'])
-    env.Append(LIBS=['opus'])
-    if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS=['-g', '-O2', '-arch', 'x86_64'])
-        env.Append(CXXFLAGS=['-std=c++17'])
-        env.Append(LINKFLAGS=['-arch', 'x86_64'])
-    else:
-        env.Append(CCFLAGS=['-g', '-O3', '-arch', 'x86_64'])
-        env.Append(CXXFLAGS=['-std=c++17'])
-        env.Append(LINKFLAGS=['-arch', 'x86_64'])
-
-elif env['platform'] in ('x11', 'linux'):
-    env['target_path'] += 'x11/'
-    cpp_library += '.linux'
-    env.Append(LIBPATH=['./libs/linux/'])
-    env.Append(LIBS=['libopus.so'])
-    if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS=['-fPIC', '-g3', '-Og'])
-        env.Append(CXXFLAGS=['-std=c++17'])
-    else:
-        env.Append(CCFLAGS=['-fPIC', '-O3'])
-        env.Append(CXXFLAGS=['-std=c++17'])
-        env.Append(LINKFLAGS=['-s'])
-
-elif env['platform'] == "windows":
-    env['target_path'] += 'win64/'
-    cpp_library += '.windows'
-    # This makes sure to keep the session environment variables on windows,
-    # that way you can run scons in a vs 2017 prompt and it will find all the required tools
-    env.Append(ENV=os.environ)
-    env.Append(LIBPATH=[cpp_bindings_path + 'bin/', 'libs/', 'libs/win_x64/', './libs/linux/', './libs/osx/'])
-    env.Append(CPPDEFINES=['WIN32', '_WIN32', '_WINDOWS', '_CRT_SECURE_NO_WARNINGS', 'OPUS_BUILD', 'DLL_EXPORT'])
-    env.Append(CCFLAGS=['-W3', '-GR', '/std:c++17'])
-    env.Append(LIBPATH=['libs/win_x64/'])
-    env.Append(LIBS=['opus.lib'])
-    if env['target'] in ('debug', 'd'):
-        env.Append(CPPDEFINES=['_DEBUG'])
-        env.Append(CCFLAGS=['-EHsc', '-MDd', '-ZI'])
-        env.Append(LINKFLAGS=['-DEBUG'])
-    else:
-        env.Append(CPPDEFINES=['NDEBUG'])
-        env.Append(CCFLAGS=['-EHsc', '-MD', '-O2'])
-
-if env['target'] in ('debug', 'd'):
-    cpp_library += '.debug'
-else:
-    cpp_library += '.release'
-
-cpp_library += '.' + str(bits)
-
-# make sure our binding library is properly includes
-env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/', opus_headers])
-env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
-env.Append(LIBS=[cpp_library])
-
-
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=['src/'])
-sources = Glob('src/*.cpp')
-sources.extend(Glob('src/*/*.cpp'))
-sources.extend(Glob('src/*/*/*.cpp'))
-sources.extend(Glob('src/*/*/*/*.cpp'))
+env.Append(CPPPATH=["src/"])
+sources = Glob("src/*.cpp")
 
-library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
+opus_headers = '/nix/store/z3ydm9blbyxpl73j1hjrng8c21lkf6di-libopus-1.3.1-dev/include/opus'
+opus_libs = '/nix/store/7lyly0wrvqghz08jcjmshg2bkcngxawn-libopus-1.3.1/lib'
+env.Append(CPPPATH=[opus_headers])
+env.Append(LIBPATH=[opus_libs])
+
+#env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/', opus_headers])
+#env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
+#env.Append(LIBS=[cpp_library])
+
+
+if env["platform"] == "macos":
+    library = env.SharedLibrary(
+        "demo/bin/libgdexample.{}.{}.framework/libgdexample.{}.{}".format(
+            env["platform"], env["target"], env["platform"], env["target"]
+        ),
+        source=sources,
+    )
+else:
+    library = env.SharedLibrary(
+        "/home/julian/repositories/godot_multiplayer_networking_workbench_G4/addons/opus/libgdexample{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        source=sources,
+    )
 
 Default(library)
-
-# Generates help for the -h scons option.
-Help(opts.GenerateHelpText(env))
