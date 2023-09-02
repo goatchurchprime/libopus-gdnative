@@ -51,6 +51,9 @@ public:
     void set_speed(const double p_speed);
     double get_speed() const;
     
+    void set_sample_rate(const int p_sample_rate);
+    int get_sample_rate() const;
+
     PackedByteArray decode(const PackedByteArray opusEncoded);
 
 };

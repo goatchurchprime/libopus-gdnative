@@ -1,45 +1,57 @@
 //
 // Created by Adam on 5/30/2020.
+// Ported to GDExtension by goatchurchprime on 2023-09-02
 //
 
-#ifndef OPUS_GDNATIVE_OPUSDECODERNODE_H
-#define OPUS_GDNATIVE_OPUSDECODERNODE_H
+#ifndef OPUS_GDEXTENSION_OPUSDECODERNODE_H
+#define OPUS_GDEXTENSION_OPUSDECODERNODE_H
+
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
 #include <mutex>
-#include <Godot.hpp>
-#include <Node.hpp>
 #include <opus.h>
 
-namespace opus
+
+namespace godot
 {
-	class OpusDecoderNode : public godot::Node
-	{
-	private:
-	GODOT_CLASS(OpusDecoderNode, godot::Node)
 
-		int frame_size;
-		int max_frame_size;
-		OpusDecoder *decoder = nullptr;
-		int outBuffSize;
-		opus_int16 *outBuff = nullptr;
+class OpusDecoderNode : public Node 
+{
+    GDCLASS(OpusDecoderNode, Node)
 
-		std::mutex decoder_mutex;
-	public:
-		int sample_rate;
-		int pcm_channel_size;
-		int channels;
+private:
 
-		OpusDecoderNode();
-		~OpusDecoderNode();
+    int frame_size;
+    int max_frame_size;
+	OpusDecoder *decoder = nullptr;
+	int outBuffSize;
+	opus_int16 *outBuff = nullptr;
 
-		void _init();
-		void _ready();
-		void _exit_tree();
+	std::mutex decoder_mutex;
 
-		godot::PoolByteArray decode(const godot::PoolByteArray opusEncoded);
+protected:
+    static void _bind_methods();
 
-		static void _register_methods();
-	};
+public:
+	int sample_rate;
+	int pcm_channel_size;
+	int channels;
+
+	OpusDecoderNode();
+	~OpusDecoderNode();
+    void _ready();
+
+    void set_sample_rate(const int p_sample_rate);
+    int get_sample_rate() const;
+    void set_pcm_channel_size(const int p_pcm_channel_size);
+    int get_pcm_channel_size() const;
+    void set_channels(const int p_channels);
+    int get_channels() const;
+
+    PackedByteArray decode(const PackedByteArray opusEncoded);
+};
+
 }
 
-#endif //OPUS_GDNATIVE_OPUSDECODERNODE_H
+#endif //OPUS_GDEXTENSION_OPUSDECODERNODE_H

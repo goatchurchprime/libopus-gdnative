@@ -1,54 +1,55 @@
 //
 // Created by Adam on 5/30/2020.
+// Ported to GDExtension by goatchurchprime on 2023-09-02
 //
 
-#ifndef OPUS_GDNATIVE_OPUS_H
-#define OPUS_GDNATIVE_OPUS_H
+#ifndef OPUS_GDEXTENSION_OPUSENCODERNODE_H
+#define OPUS_GDEXTENSION_OPUSENCODERNODE_H
+
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
 #include <mutex>
-#include <Godot.hpp>
-#include <Node.hpp>
 #include <opus.h>
 #include "Values.h"
 
-namespace opus
+namespace godot
 {
-	class OpusEncoderNode : public godot::Node
-	{
-	private:
-		GODOT_CLASS(OpusEncoderNode, godot::Node)
 
-		OpusEncoder *encoder = nullptr;
-		int inputSamplesSize;
-		opus_int16 *inputSamples = nullptr;
-		unsigned char outBuff[sizeof(opus_int16) * MAX_PACKET_SIZE];
+class OpusEncoderNode : public Node 
+{
+    GDCLASS(OpusEncoderNode, Node)
 
-		std::mutex encoder_mutex;
+	OpusEncoder *encoder = nullptr;
+	int inputSamplesSize;
+	opus_int16 *inputSamples = nullptr;
+	unsigned char outBuff[sizeof(opus_int16) * MAX_PACKET_SIZE];
 
-		/**
-		 * Size of each PCM frame in number of samples
-		 */
-		int frame_size;
-		int application;
-		int sample_rate;
-		int pcm_channel_size;
-		int channels;
-		int max_frame_size;
-	public:
-		int bit_rate;
+	std::mutex encoder_mutex;
 
-		OpusEncoderNode();
-		~OpusEncoderNode();
+	/**
+	 * Size of each PCM frame in number of samples
+	 */
+	int frame_size;
+	int application;
+	int sample_rate;
+	int pcm_channel_size;
+	int channels;
+	int max_frame_size;
 
-		void _init();
-		void _ready();
-		void _exit_tree();
+protected:
+    static void _bind_methods();
 
-		//godot::PoolByteArray resample_441kh_48kh(const godot::PoolByteArray &rawPcm);
-		godot::PoolByteArray encode(const godot::PoolByteArray rawPcm);
+public:
+	int bit_rate;
 
-		static void _register_methods();
-	};
+	OpusEncoderNode();
+	~OpusEncoderNode();
+    void _ready();
+
+	PackedByteArray encode(const PackedByteArray rawPcm);
+};
+
 }
 
-#endif //OPUS_GDNATIVE_OPUS_H
+#endif // OPUS_GDEXTENSION_OPUSENCODERNODE_H
