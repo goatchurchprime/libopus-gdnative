@@ -31,7 +31,7 @@ extern "C"
 		init_obj.register_initializer(initialize_gdextension_types);
 		init_obj.register_terminator(uninitialize_gdextension_types);
 		init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
-		std::cout << "Histsss------fdg-------ssss there\n"; 
+		std::cout << "Histsss---ss---300\n"; 
 		return init_obj.init();
 	}
 }

@@ -20,6 +20,13 @@ opus_headers = '/nix/store/z3ydm9blbyxpl73j1hjrng8c21lkf6di-libopus-1.3.1-dev/in
 opus_libs = '/nix/store/7lyly0wrvqghz08jcjmshg2bkcngxawn-libopus-1.3.1/lib'
 env.Append(CPPPATH=[opus_headers])
 env.Append(LIBPATH=[opus_libs])
+env.Append(LIBS=['libopus.so'])
+
+# see /home/julian/repositories/godot_multiplayer_networking_workbench_G4/addons/opus/opus.gdextension for the libraries
+
+# This creates a link directly to the nix-store, when it should do it as a relative link (maybe patchelf it?)
+# also do: cp /nix/store/7lyly0wrvqghz08jcjmshg2bkcngxawn-libopus-1.3.1/lib/libopus.so /home/julian/repositories/godot_multiplayer_networking_workbench_G4/addons/opus/
+
 
 #env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/', opus_headers])
 #env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
